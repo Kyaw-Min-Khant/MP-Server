@@ -6,4 +6,5 @@ export const secret = {
   DB_USER: process.env.User,
   DB_PASSWORD: process.env.Password,
   DB_DATABASE: process.env.Database,
+  JWTTOKEN: process.env.JWT_SECRET,
 };
