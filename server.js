@@ -1,6 +1,7 @@
 import express from "express";
 import { config } from "dotenv";
 import morgan from "morgan";
+import cors from "cors";
 import helmet from "helmet";
 import pool from "./src/config/dbconfig.js";
 import authRouter from "./src/Routes/Client/authRoute.js";
@@ -9,6 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
+app.use(cors());
 app.use(
   express.urlencoded({ limit: "60mb", extended: true, parameterLimit: 1000000 })
 );
