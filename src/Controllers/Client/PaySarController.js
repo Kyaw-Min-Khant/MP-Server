@@ -1,8 +1,8 @@
 import pool from "../../config/dbconfig.js";
 import { errorResponse, successResponse } from "../../utils/req&res.js";
-import { UAParser } from "ua-parser-js";
 import CryptoJS from "crypto-js";
 import { secret } from "../../config/secret.js";
+import { checkdevice } from "../../utils/random.js";
 
 export const createBlog = async (req, res) => {
   const { title, content, user_id } = req.body;
@@ -23,16 +23,7 @@ export const createBlog = async (req, res) => {
           CryptoJS.enc.Utf8
         )
       );
-      const parser = new UAParser(req.headers["user-agent"]);
-      let device_name;
-      const checkdevice = parser.getDevice();
-      if (checkdevice?.vendor !== undefined) {
-        device_name = String(checkdevice?.vendor + checkdevice.model);
-      } else if (parser.getOS().name !== undefined) {
-        device_name = String(parser.getOS().name);
-      } else {
-        device_name = req.headers["user-agent"];
-      }
+      let device_name = checkdevice([req.headers["user-agent"]]);
       let q =
         "INSERT INTO `PAYSAR` (`user_id`,`title`,`content`,`device_name`) VALUES (?,?,?,?)";
       const [result] = await pool.execute(q, [
@@ -41,7 +32,6 @@ export const createBlog = async (req, res) => {
         content,
         device_name,
       ]);
-      console.log(result);
       if (result.length === 0) {
         return errorResponse(403, { data: false, msg: "Paysar not sent" }, res);
       }
