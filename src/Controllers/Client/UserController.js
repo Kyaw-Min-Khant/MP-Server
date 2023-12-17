@@ -4,6 +4,8 @@ import { errorResponse, successResponse } from "../../utils/req&res.js";
 import { UAParser } from "ua-parser-js";
 import Jwt from "jsonwebtoken";
 import { secret } from "../../config/secret.js";
+import { ImageData } from "../../image/image.js";
+import CryptoJS from "crypto-js";
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
   try {
@@ -15,6 +17,13 @@ export const register = async (req, res) => {
       );
     }
     const parser = new UAParser(req.headers["user-agent"]);
+
+    const generateRandomNumber = () => {
+      let randomDecimal = Math.random();
+      var randomInteger = Math.floor(randomDecimal * 11);
+      return randomInteger;
+    };
+    let imageNumber = Number(generateRandomNumber());
     let device_id;
     const checkdevice = parser.getDevice();
     if (checkdevice?.vendor !== undefined) {
@@ -28,12 +37,13 @@ export const register = async (req, res) => {
     const hashedPassword = bcrypt.hashSync(password, salt);
 
     const query =
-      "INSERT INTO `User` (`username`,`email`,`password`,`device_id`) VALUES (?,?,?,?)";
+      "INSERT INTO `User` (`username`,`email`,`password`,`device_id`,`image_url`) VALUES (?,?,?,?,?)";
     const [result] = await pool.execute(query, [
       username,
       email,
       hashedPassword,
       device_id,
+      ImageData[imageNumber],
     ]);
     const jwtToken = Jwt.sign({ id: result.insertId, email }, secret.JWTTOKEN, {
       expiresIn: "30d",
@@ -72,10 +82,10 @@ export const login = async (req, res) => {
     errorResponse(500, { data: false, msg: e }, res);
   }
 };
-
 export const getUser = async (req, res) => {
-  const q = `SELECT id AS user_id,username,email,start_date FROM User WHERE id=?`;
+  console.log(req.user?.id);
   try {
+    const q = `SELECT id AS user_id,username,email,start_date,is_freeze,image_url FROM User WHERE id=?`;
     const [result] = await pool.execute(q, [req?.user?.id]);
     if (result.length === 0) {
       return errorResponse(
@@ -85,7 +95,19 @@ export const getUser = async (req, res) => {
       );
     }
     const data = result[0];
-    return successResponse(200, { data }, res);
+    try {
+      const hashId = CryptoJS.AES.encrypt(
+        String(result[0].user_id),
+        secret.JWTTOKEN
+      ).toString();
+      return successResponse(200, { ...data, user_id: hashId }, res);
+    } catch (error) {
+      return errorResponse(
+        500,
+        { data: false, msg: "Internal Server Error" },
+        res
+      );
+    }
   } catch (err) {
     return errorResponse(403, { data: false, msg: err }, res);
   }
