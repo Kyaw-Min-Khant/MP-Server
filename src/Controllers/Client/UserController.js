@@ -1,11 +1,11 @@
 import bcrypt from "bcrypt";
 import pool from "../../config/dbconfig.js";
 import { errorResponse, successResponse } from "../../utils/req&res.js";
-import { UAParser } from "ua-parser-js";
 import Jwt from "jsonwebtoken";
 import { secret } from "../../config/secret.js";
 import { ImageData } from "../../image/image.js";
 import CryptoJS from "crypto-js";
+import { checkdevice, generateRandomNumber } from "../../utils/random.js";
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
   try {
@@ -16,23 +16,11 @@ export const register = async (req, res) => {
         res
       );
     }
-    const parser = new UAParser(req.headers["user-agent"]);
-
-    const generateRandomNumber = () => {
-      let randomDecimal = Math.random();
-      var randomInteger = Math.floor(randomDecimal * 11);
-      return randomInteger;
-    };
+    //Generate Image Number
     let imageNumber = Number(generateRandomNumber());
-    let device_id;
-    const checkdevice = parser.getDevice();
-    if (checkdevice?.vendor !== undefined) {
-      device_id = String(checkdevice?.vendor + checkdevice.model);
-    } else if (parser.getOS().name !== undefined) {
-      device_id = String(parser.getOS().name);
-    } else {
-      device_id = req.headers["user-agent"];
-    }
+    //Get device Name
+    let device_id = checkdevice(req.headers["user-agent"]);
+
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
 
