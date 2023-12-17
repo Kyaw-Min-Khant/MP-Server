@@ -72,3 +72,21 @@ export const login = async (req, res) => {
     errorResponse(500, { data: false, msg: e }, res);
   }
 };
+
+export const getUser = async (req, res) => {
+  const q = `SELECT id AS user_id,username,email,start_date FROM User WHERE id=?`;
+  try {
+    const [result] = await pool.execute(q, [req?.user?.id]);
+    if (result.length === 0) {
+      return errorResponse(
+        401,
+        { data: false, msg: "User Data Not Found" },
+        res
+      );
+    }
+    const data = result[0];
+    return successResponse(200, { data }, res);
+  } catch (err) {
+    return errorResponse(403, { data: false, msg: err }, res);
+  }
+};
