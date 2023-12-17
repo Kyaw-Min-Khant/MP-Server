@@ -6,6 +6,7 @@ import { secret } from "../../config/secret.js";
 import { ImageData } from "../../image/image.js";
 import CryptoJS from "crypto-js";
 import { checkdevice, generateRandomNumber } from "../../utils/random.js";
+import { checkHashcode } from "../../utils/checkKey.js";
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
   try {
@@ -71,10 +72,40 @@ export const login = async (req, res) => {
   }
 };
 export const getUser = async (req, res) => {
-  console.log(req.user?.id);
   try {
     const q = `SELECT id AS user_id,username,email,start_date,is_freeze,image_url FROM User WHERE id=?`;
-    const [result] = await pool.execute(q, [req?.user?.id]);
+    const [result] = await pool.execute(q, [req.user.id]);
+    if (result.length === 0) {
+      return errorResponse(
+        401,
+        { data: false, msg: "User Data Not Found" },
+        res
+      );
+    }
+    const data = result[0];
+    try {
+      const hashId = CryptoJS.AES.encrypt(
+        String(result[0].user_id),
+        secret.JWTTOKEN
+      ).toString();
+      return successResponse(200, { ...data, user_id: hashId }, res);
+    } catch (error) {
+      return errorResponse(
+        500,
+        { data: false, msg: "Internal Server Error" },
+        res
+      );
+    }
+  } catch (err) {
+    return errorResponse(403, { data: false, msg: err }, res);
+  }
+};
+export const getSingleUser = async (req, res) => {
+  const userId = checkHashcode(req?.query?.user);
+  console.log(userId);
+  try {
+    const q = `SELECT id AS user_id,username,email,image_url FROM User WHERE id=?`;
+    const [result] = await pool.execute(q, [userId]);
     if (result.length === 0) {
       return errorResponse(
         401,
