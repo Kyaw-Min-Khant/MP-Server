@@ -5,45 +5,46 @@ import { secret } from "../../config/secret.js";
 import { checkdevice } from "../../utils/random.js";
 
 export const createBlog = async (req, res) => {
-  const { title, content, user_id } = req.body;
+  const { title, content, username } = req.body;
   try {
-    {
-      if (!title || !content || !user_id) {
-        return errorResponse(
-          400,
-          {
-            data: "false",
-            msg: "All Fields are required",
-          },
-          res
-        );
-      }
-      const hashedId = Number(
-        CryptoJS.AES.decrypt(user_id, secret.JWTTOKEN).toString(
-          CryptoJS.enc.Utf8
-        )
-      );
-      let device_name = checkdevice([req.headers["user-agent"]]);
-      let q =
-        "INSERT INTO `PAYSAR` (`user_id`,`title`,`content`,`device_name`) VALUES (?,?,?,?)";
-      const [result] = await pool.execute(q, [
-        hashedId,
-        title,
-        content,
-        device_name,
-      ]);
-      if (result.length === 0) {
-        return errorResponse(403, { data: false, msg: "Paysar not sent" }, res);
-      }
-      return successResponse(
-        200,
+    console.log(username);
+    if (!title || !content || !username) {
+      return errorResponse(
+        400,
         {
-          data: true,
-          msg: "Paysar sent successfully",
+          data: "false",
+          msg: "All Fields are required",
         },
         res
       );
     }
+    const [userId] = await pool.execute(
+      `SELECT id FROM User WHERE username=?`,
+      [username]
+    );
+    console.log(userId);
+    if (userId.length === 0)
+      errorResponse(402, { data: false, msg: "User not found" }, res);
+    let device_name = checkdevice([req.headers["user-agent"]]);
+    let q =
+      "INSERT INTO `PAYSAR` (`user_id`,`title`,`content`,`device_name`) VALUES (?,?,?,?)";
+    const [result] = await pool.execute(q, [
+      userId[0].id,
+      title,
+      content,
+      device_name,
+    ]);
+    if (result.length === 0) {
+      return errorResponse(403, { data: false, msg: "Paysar not sent" }, res);
+    }
+    return successResponse(
+      200,
+      {
+        data: true,
+        msg: "Paysar sent successfully",
+      },
+      res
+    );
   } catch (e) {
     return errorResponse(403, { data: false, msg: "Paysar not sent" }, res);
   }
