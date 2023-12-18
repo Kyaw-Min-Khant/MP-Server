@@ -113,7 +113,7 @@ export const getSingleUser = async (req, res) => {
     if (userId.length === 0)
       return errorResponse(402, { data: false, msg: "User not found" });
 
-    const q = `SELECT id AS user_id, username,email,image_url FROM User WHERE id=?`;
+    const q = `SELECT  username,email,image_url,description FROM User WHERE id=?`;
     const [result] = await pool.execute(q, [userId[0].id]);
     if (result.length === 0) {
       return errorResponse(
@@ -129,7 +129,6 @@ export const getSingleUser = async (req, res) => {
   }
 };
 export const eidtUser = async (req, res) => {
-  console.log(req.user?.id);
   const { username, image_url, description } = req.body;
   console.log(username, image_url, description);
   if (!username && !image_url && !description)
