@@ -18,10 +18,10 @@ export const checkdevice = (header) => {
   const checkdevice = parser.getDevice();
   if (checkdevice?.vendor !== undefined) {
     device_id = String(checkdevice?.vendor + checkdevice.model);
-  } else if (parser.getOS().name !== undefined) {
-    device_id = String(parser.getOS().name.slice(0, 50));
+  } else if (parser.getBrowser().name !== undefined) {
+    device_id = String(parser?.getBrowser()?.name);
   } else {
-    device_id = String(parser.getResult().browser.name.slice(0, 50));
+    device_id = String(parser?.getOS()?.name);
   }
   return device_id;
 };
