@@ -1,7 +1,6 @@
 import pool from "../../config/dbconfig.js";
 import { errorResponse, successResponse } from "../../utils/req&res.js";
 import { checkdevice } from "../../utils/random.js";
-
 export const createBlog = async (req, res) => {
   const { title, content, username } = req.body;
   try {
@@ -32,7 +31,7 @@ export const createBlog = async (req, res) => {
       userId[0].id,
       title,
       content,
-      device_name.slice(0, 100),
+      device_name,
     ]);
     if (result.length === 0) {
       return errorResponse(403, { data: false, msg: "Paysar not sent" }, res);

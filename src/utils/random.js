@@ -14,13 +14,14 @@ export const checkdevice = (header) => {
   console.log(header);
   let device_id;
   const parser = new UAParser(header);
+  console.log(parser);
   const checkdevice = parser.getDevice();
   if (checkdevice?.vendor !== undefined) {
     device_id = String(checkdevice?.vendor + checkdevice.model);
   } else if (parser.getOS().name !== undefined) {
-    device_id = String(parser.getOS().name);
+    device_id = String(parser.getOS().name.slice(0, 50));
   } else {
-    device_id = header;
+    device_id = String(parser.getResult().browser.name.slice(0, 50));
   }
   return device_id;
 };
