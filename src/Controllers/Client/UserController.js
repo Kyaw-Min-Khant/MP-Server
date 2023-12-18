@@ -93,7 +93,7 @@ export const login = async (req, res) => {
 };
 export const getUser = async (req, res) => {
   try {
-    const q = `SELECT id AS user_id,username,email,start_date,is_freeze,image_url FROM User WHERE id=?`;
+    const q = `SELECT username,email,start_date,is_freeze,image_url,description FROM User WHERE id=?`;
     const [result] = await pool.execute(q, [req.user.id]);
     if (result.length === 0) {
       return errorResponse(
@@ -104,11 +104,7 @@ export const getUser = async (req, res) => {
     }
     const data = result[0];
     try {
-      const hashId = CryptoJS.AES.encrypt(
-        String(result[0].user_id),
-        secret.JWTTOKEN
-      ).toString();
-      return successResponse(200, { ...data, user_id: hashId }, res);
+      return successResponse(200, data, res);
     } catch (error) {
       return errorResponse(
         500,
