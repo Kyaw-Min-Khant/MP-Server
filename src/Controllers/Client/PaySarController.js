@@ -46,7 +46,7 @@ export const createBlog = async (req, res) => {
       res
     );
   } catch (e) {
-    console.log(err);
+    console.log(e);
     return errorResponse(403, { data: false, msg: "Paysar not sent" }, res);
   }
 };
