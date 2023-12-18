@@ -101,11 +101,20 @@ export const getUser = async (req, res) => {
   }
 };
 export const getSingleUser = async (req, res) => {
-  const userId = checkHashcode(req?.query?.user);
-  console.log(userId);
+  const userName = req.params.id;
+  if (!userName) {
+    return errorResponse(402, { data: false, msg: "Username required" });
+  }
   try {
-    const q = `SELECT id AS user_id,username,email,image_url FROM User WHERE id=?`;
-    const [result] = await pool.execute(q, [userId]);
+    const [userId] = await pool.execute(
+      `SELECT id FROM User WHERE username=?`,
+      [req.params.id]
+    );
+    if (userId.length === 0)
+      return errorResponse(402, { data: false, msg: "User not found" });
+
+    const q = `SELECT id AS user_id, username,email,image_url FROM User WHERE id=?`;
+    const [result] = await pool.execute(q, [userId[0].id]);
     if (result.length === 0) {
       return errorResponse(
         401,
@@ -114,20 +123,35 @@ export const getSingleUser = async (req, res) => {
       );
     }
     const data = result[0];
-    try {
-      const hashId = CryptoJS.AES.encrypt(
-        String(result[0].user_id),
-        secret.JWTTOKEN
-      ).toString();
-      return successResponse(200, { ...data, user_id: hashId }, res);
-    } catch (error) {
+    return successResponse(200, data, res);
+  } catch (err) {
+    return errorResponse(403, { data: false, msg: err }, res);
+  }
+};
+export const eidtUser = async (req, res) => {
+  console.log(req.user?.id);
+  const { username, image_url, description } = req.body;
+  console.log(username, image_url, description);
+  if (!username && !image_url && !description)
+    errorResponse(401, { data: false, msg: "All Fields are Required" }, res);
+  try {
+    let q = `UPDATE User SET username=?,image_url=?,description=? WHERE id=?`;
+    const [result] = await pool.execute(q, [
+      username,
+      image_url,
+      description,
+      req?.user?.id,
+    ]);
+    console.log(result);
+    if (result.length === 0) {
       return errorResponse(
         500,
-        { data: false, msg: "Internal Server Error" },
+        { data: false, msg: "Update User Failed" },
         res
       );
     }
+    return successResponse(200, { data: true, msg: "Update Successful" }, res);
   } catch (err) {
-    return errorResponse(403, { data: false, msg: err }, res);
+    return errorResponse(500, { data: false, msg: err }, res);
   }
 };

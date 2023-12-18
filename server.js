@@ -7,6 +7,7 @@ import pool from "./src/config/dbconfig.js";
 import authRouter from "./src/Routes/Client/authRoute.js";
 import payserRouter from "./src/Routes/Client/blogRoute.js";
 import userRouter from "./src/Routes/Client/userRoute.js";
+import imageRouter from "./src/Routes/Client/imageRoute.js";
 config();
 const app = express();
 app.use(express.json());
@@ -28,6 +29,8 @@ pool.getConnection((err, connection) => {
 app.use("/v1/api/auth", authRouter);
 app.use("/v1/api/paysar", payserRouter);
 app.use("/v1/api", userRouter);
+app.use("/v1/api/images", imageRouter);
+
 app.get("/", async (req, res) => {
   return res.send("Welcome");
 });
