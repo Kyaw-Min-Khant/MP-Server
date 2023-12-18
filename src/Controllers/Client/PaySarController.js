@@ -1,7 +1,5 @@
 import pool from "../../config/dbconfig.js";
 import { errorResponse, successResponse } from "../../utils/req&res.js";
-import CryptoJS from "crypto-js";
-import { secret } from "../../config/secret.js";
 import { checkdevice } from "../../utils/random.js";
 
 export const createBlog = async (req, res) => {
@@ -22,17 +20,19 @@ export const createBlog = async (req, res) => {
       `SELECT id FROM User WHERE username=?`,
       [username]
     );
-    console.log(userId);
-    if (userId.length === 0)
-      errorResponse(402, { data: false, msg: "User not found" }, res);
+    console.log(userId[0].id);
+    if (userId.length === 0) {
+      return errorResponse(402, { data: false, msg: "User not found" }, res);
+    }
     let device_name = checkdevice([req.headers["user-agent"]]);
+    console.log(device_name.slice(0, 100));
     let q =
       "INSERT INTO `PAYSAR` (`user_id`,`title`,`content`,`device_name`) VALUES (?,?,?,?)";
     const [result] = await pool.execute(q, [
       userId[0].id,
       title,
       content,
-      device_name,
+      device_name.slice(0, 100),
     ]);
     if (result.length === 0) {
       return errorResponse(403, { data: false, msg: "Paysar not sent" }, res);
@@ -46,6 +46,7 @@ export const createBlog = async (req, res) => {
       res
     );
   } catch (e) {
+    console.log(err);
     return errorResponse(403, { data: false, msg: "Paysar not sent" }, res);
   }
 };

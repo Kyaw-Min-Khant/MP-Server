@@ -6,7 +6,6 @@ import { secret } from "../../config/secret.js";
 import { ImageData } from "../../image/image.js";
 import CryptoJS from "crypto-js";
 import { checkdevice, generateRandomNumber } from "../../utils/random.js";
-import { checkHashcode } from "../../utils/checkKey.js";
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
   try {
@@ -17,14 +16,35 @@ export const register = async (req, res) => {
         res
       );
     }
-    //Generate Image Number
+    const usernameRegex = /^[a-zA-Z0-9_@.]+$/;
+    console.log(usernameRegex.test(username));
+    //Check Username Length
+    if (username.length <= 5)
+      errorResponse(
+        402,
+        {
+          data: false,
+          msg: "Nama must be at least 5 characters!",
+        },
+        res
+      );
+    const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*[a-zA-Z]).{5,13}$/;
+    const validatePassword = (password) => {
+      return passwordRegex.test(password);
+    };
+    //Check Username
+    if (!usernameRegex.test(username))
+      errorResponse(401, { data: false, msg: "Invalid UserName" }, res);
+    //Check Password
+    if (!validatePassword(password)) {
+      return errorResponse(401, { data: false, msg: "Invalid Password" }, res);
+    }
+    // Generate Image Number
     let imageNumber = Number(generateRandomNumber());
     //Get device Name
     let device_id = checkdevice(req.headers["user-agent"]);
-
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
-
     const query =
       "INSERT INTO `User` (`username`,`email`,`password`,`device_id`,`image_url`) VALUES (?,?,?,?,?)";
     const [result] = await pool.execute(query, [
@@ -99,6 +119,14 @@ export const getUser = async (req, res) => {
   } catch (err) {
     return errorResponse(403, { data: false, msg: err }, res);
   }
+};
+export const getAllUser = async (req, res) => {
+  const q = `SELECT username,image_url FROM User`;
+  const [result] = await pool.execute(q);
+  if (result?.length === 0) {
+    return errorResponse(403, { data: false, msg: "User Data not found" }, res);
+  }
+  return successResponse(200, result, res);
 };
 export const getSingleUser = async (req, res) => {
   const userName = req.params.id;
