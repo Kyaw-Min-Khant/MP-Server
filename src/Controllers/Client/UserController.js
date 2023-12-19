@@ -97,7 +97,7 @@ export const logOut = (req, res) => {
 };
 export const getUser = async (req, res) => {
   try {
-    const q = `SELECT id As user_id username,email,start_date,is_freeze,image_url,description FROM User WHERE id=?`;
+    const q = `SELECT id As user_id,username,email,start_date,is_freeze,image_url,description FROM User WHERE id=?`;
     const [result] = await pool.execute(q, [req.user.id]);
     if (result.length === 0) {
       return errorResponse(
