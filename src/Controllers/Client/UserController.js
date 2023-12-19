@@ -4,7 +4,6 @@ import { errorResponse, successResponse } from "../../utils/req&res.js";
 import Jwt from "jsonwebtoken";
 import { secret } from "../../config/secret.js";
 import { ImageData } from "../../image/image.js";
-import CryptoJS from "crypto-js";
 import { checkdevice, generateRandomNumber } from "../../utils/random.js";
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -79,7 +78,9 @@ export const login = async (req, res) => {
     if (user.is_Freeze === 0) {
       return res.status(403).json({ message: "Your Account is Locked!" });
     }
-    const checkPassword = bcrypt.compare(password, user?.password);
+    console.log(user.password, password);
+    console.log(bcrypt.compare(password, user.password));
+    const checkPassword = await bcrypt.compare(password, user?.password);
     if (!checkPassword) {
       return res.status(401).json({ message: "Password is Invalid" });
     }
@@ -91,9 +92,12 @@ export const login = async (req, res) => {
     errorResponse(500, { data: false, msg: e }, res);
   }
 };
+export const logOut = (req, res) => {
+  return errorResponse(200, { data: true, msg: "Log Out Successful" }, res);
+};
 export const getUser = async (req, res) => {
   try {
-    const q = `SELECT username,email,start_date,is_freeze,image_url,description FROM User WHERE id=?`;
+    const q = `SELECT id As user_id username,email,start_date,is_freeze,image_url,description FROM User WHERE id=?`;
     const [result] = await pool.execute(q, [req.user.id]);
     if (result.length === 0) {
       return errorResponse(
