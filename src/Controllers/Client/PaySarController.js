@@ -57,16 +57,17 @@ export const createBlog = async (req, res) => {
 };
 
 export const getPaysar = async (req, res) => {
-  const limit = parseInt(req.query.limit) || 5; // Default page to 1
+  const limit = parseInt(req.query.limit) || 7; // Default page to 1
   const perPage = parseInt(req.query.page) || 1; // Default items per page to 10
 
   const offset = Number((perPage - 1) * limit);
   const user_id = req?.user?.id;
-  console.log("user_id:", user_id);
-  console.log("perPage:", perPage);
-  console.log("offset:", offset);
 
-  let q = `SELECT id AS paysar_id, title, content, sent_date,replay FROM PAYSAR WHERE user_id=${user_id} LIMIT ${limit} OFFSET ${offset}`;
+  let q = `SELECT id AS paysar_id, title, content, sent_date, replay
+          FROM PAYSAR
+          WHERE user_id=${user_id}
+          ORDER BY sent_date DESC
+          LIMIT ${limit} OFFSET ${offset}`;
 
   try {
     const [result] = await pool.execute(q);
@@ -87,14 +88,26 @@ export const getPaysar = async (req, res) => {
 };
 
 export const getUserPaysar = async (req, res) => {
-  let q = `SELECT id AS paysar_id,title,content,sent_date,replay FROM PAYSAR WHERE sender_id=? `;
+  const limit = parseInt(req.query.limit) || 7;
+  const perPage = parseInt(req.query.page) || 1;
+  const offset = Number((perPage - 1) * limit);
+  let q = `SELECT id AS paysar_id,title,content,sent_date,replay FROM PAYSAR WHERE sender_id=?  ORDER BY sent_date DESC
+          LIMIT ${limit} OFFSET ${offset}`;
   const user_id = req.user.id;
   try {
     const [result] = await pool.execute(q, [user_id]);
     if (result.length === 0) {
       return errorResponse(402, { data: false, msg: "No Paysar found" }, res);
     }
-    return successResponse(200, result, res);
+    const countQuery = "SELECT COUNT(*) as Count FROM PAYSAR WHERE sender_id=?";
+    const [countResult] = await pool.execute(countQuery, [user_id]);
+    const totalPage = Math.ceil(+countResult[0]?.Count / limit);
+
+    return successResponse(
+      200,
+      { result, page: +perPage, limit: +limit, totalPage },
+      res
+    );
   } catch (e) {
     return errorResponse(500, { data: false, msg: e }, res);
   }
@@ -112,8 +125,8 @@ export const paysarreplay = async (req, res) => {
   }
   try {
     const [paysar] = await pool.execute(
-      `SELECT user_id FROM PAYSAR WHERE id=?`,
-      [paysarId]
+      `SELECT user_id FROM PAYSAR WHERE id=? `,
+      [paysarId, limit, offset]
     );
     if (paysar.length === 0) {
       return errorResponse(400, { data: false, msg: "Paysar not found" }, res);
