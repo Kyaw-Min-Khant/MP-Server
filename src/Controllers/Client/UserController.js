@@ -4,9 +4,12 @@ import { errorResponse, successResponse } from "../../utils/req&res.js";
 import Jwt from "jsonwebtoken";
 import { secret } from "../../config/secret.js";
 import { ImageData } from "../../image/image.js";
+import QRCode from "qrcode";
+
 import { checkdevice, generateRandomNumber } from "../../utils/random.js";
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
+
   try {
     if (!username || !email || !password) {
       return errorResponse(
@@ -27,6 +30,7 @@ export const register = async (req, res) => {
         },
         res
       );
+    console.log(username);
     const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*[a-zA-Z]).{5,13}$/;
     const validatePassword = (password) => {
       return passwordRegex.test(password);
@@ -38,22 +42,35 @@ export const register = async (req, res) => {
     if (!validatePassword(password)) {
       return errorResponse(401, { data: false, msg: "Invalid Password" }, res);
     }
+    const generateQR = async (text) => {
+      try {
+        const imageData = await QRCode.toFile(
+          "file.png",
+          `https://pay-sar.vercel.app/user/${text}/ask-question`,
+          { errorCorrectionLevel: "H" }
+        );
+        console.log(imageData);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    generateQR(username);
     // Generate Image Number
     let imageNumber = Number(generateRandomNumber());
     //Get device Name
     let device_id = checkdevice(req.headers["user-agent"]);
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
-    const query =
-      "INSERT INTO `User` (`username`,`email`,`password`,`device_id`,`image_url`) VALUES (?,?,?,?,?)";
-    const [result] = await pool.execute(query, [
-      username,
-      email,
-      hashedPassword,
-      device_id,
-      ImageData[imageNumber],
-    ]);
-    const jwtToken = Jwt.sign({ id: result.insertId, email }, secret.JWTTOKEN, {
+    // const query =
+    //   "INSERT INTO `User` (`username`,`email`,`password`,`device_id`,`image_url`) VALUES (?,?,?,?,?)";
+    // const [result] = await pool.execute(query, [
+    //   username,
+    //   email,
+    //   hashedPassword,
+    //   device_id,
+    //   ImageData[imageNumber],
+    // ]);
+    const jwtToken = Jwt.sign({ id: 3, email }, secret.JWTTOKEN, {
       expiresIn: "30d",
     });
     return successResponse(200, { data: true, token: jwtToken }, res);

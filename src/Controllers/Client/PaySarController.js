@@ -89,7 +89,6 @@ export const getPaysar = async (req, res) => {
 export const getUserPaysar = async (req, res) => {
   let q = `SELECT id AS paysar_id,title,content,sent_date,replay FROM PAYSAR WHERE sender_id=? `;
   const user_id = req.user.id;
-  console.log(user_id);
   try {
     const [result] = await pool.execute(q, [user_id]);
     if (result.length === 0) {
@@ -116,29 +115,10 @@ export const paysarreplay = async (req, res) => {
       `SELECT user_id FROM PAYSAR WHERE id=?`,
       [paysarId]
     );
-    console.log(paysar);
     if (paysar.length === 0) {
       return errorResponse(400, { data: false, msg: "Paysar not found" }, res);
     }
-    if (paysar[0].user_id === req.body.user_id) {
-      let q = `UPDATE PAYSAR SET replay=? WHERE id=?`;
-      const [result] = await pool.execute(q, [replay, paysarId]);
-      if (result.length === 0) {
-        return errorResponse(
-          402,
-          {
-            data: false,
-            msg: "User have no permission to replay",
-          },
-          res
-        );
-      }
-      return successResponse(
-        200,
-        { data: true, msg: "Replay Successful" },
-        res
-      );
-    } else {
+    if (paysar[0].user_id !== req.user.id) {
       return errorResponse(
         402,
         {
@@ -148,6 +128,12 @@ export const paysarreplay = async (req, res) => {
         res
       );
     }
+    let q = `UPDATE PAYSAR SET replay=? WHERE id=?`;
+    const [result] = await pool.execute(q, [replay, paysarId]);
+    if (result.length === 0) {
+      return errorResponse(404, { data: false, msg: "Reply Failed" }, res);
+    }
+    return successResponse(200, { data: true, msg: "Replay Successful" }, res);
   } catch (e) {
     console.log(e);
     return errorResponse(500, { data: false, msg: "Server Error" }, res);
