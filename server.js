@@ -8,6 +8,7 @@ import authRouter from "./src/Routes/Client/authRoute.js";
 import payserRouter from "./src/Routes/Client/blogRoute.js";
 import userRouter from "./src/Routes/Client/userRoute.js";
 import imageRouter from "./src/Routes/Client/imageRoute.js";
+import feedbackRouter from "./src/Routes/Client/feedbackRoute.js";
 config();
 const app = express();
 app.use(express.json());
@@ -30,6 +31,7 @@ app.use("/v1/api/auth", authRouter);
 app.use("/v1/api/paysar", payserRouter);
 app.use("/v1/api", userRouter);
 app.use("/v1/api/images", imageRouter);
+app.use("/v1/api/feedback", feedbackRouter);
 
 app.get("/", async (req, res) => {
   return res.send("Welcome");
