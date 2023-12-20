@@ -3,9 +3,8 @@ import pool from "../../config/dbconfig.js";
 import { errorResponse, successResponse } from "../../utils/req&res.js";
 import Jwt from "jsonwebtoken";
 import { secret } from "../../config/secret.js";
-import { ImageData } from "../../image/image.js";
 import QRCode from "qrcode";
-
+import admin from "firebase-admin";
 import { checkdevice, generateRandomNumber } from "../../utils/random.js";
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -35,6 +34,8 @@ export const register = async (req, res) => {
     const validatePassword = (password) => {
       return passwordRegex.test(password);
     };
+    const bucket = admin.storage().bucket();
+
     //Check Username
     if (!usernameRegex.test(username))
       errorResponse(401, { data: false, msg: "Invalid UserName" }, res);

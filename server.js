@@ -9,6 +9,8 @@ import payserRouter from "./src/Routes/Client/blogRoute.js";
 import userRouter from "./src/Routes/Client/userRoute.js";
 import imageRouter from "./src/Routes/Client/imageRoute.js";
 import feedbackRouter from "./src/Routes/Client/feedbackRoute.js";
+import admin from "firebase-admin";
+
 config();
 const app = express();
 app.use(express.json());
@@ -18,7 +20,12 @@ app.use(cors());
 app.use(
   express.urlencoded({ limit: "60mb", extended: true, parameterLimit: 1000000 })
 );
+// var serviceAccount = require("./admin.json");
 
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   storageBucket: "gs://learnfirebase-39b36.appspot.com",
+// });
 pool.getConnection((err, connection) => {
   if (err) {
     console.error("Error connecting to MySQL:", err);

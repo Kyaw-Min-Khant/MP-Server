@@ -126,7 +126,7 @@ export const paysarreplay = async (req, res) => {
   try {
     const [paysar] = await pool.execute(
       `SELECT user_id FROM PAYSAR WHERE id=? `,
-      [paysarId, limit, offset]
+      [paysarId]
     );
     if (paysar.length === 0) {
       return errorResponse(400, { data: false, msg: "Paysar not found" }, res);
