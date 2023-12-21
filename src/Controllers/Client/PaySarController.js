@@ -146,12 +146,42 @@ export const paysarreplay = async (req, res) => {
         res
       );
     }
-    let q = `UPDATE PAYSAR SET replay=? WHERE id=?`;
+    let q = `UPDATE PAYSAR SET replay=?,reply_date=CURRENT_TIMESTAMP  WHERE id=?`;
     const [result] = await pool.execute(q, [replay, paysarId]);
     if (result.length === 0) {
       return errorResponse(404, { data: false, msg: "Reply Failed" }, res);
     }
     return successResponse(200, { data: true, msg: "Replay Successful" }, res);
+  } catch (e) {
+    console.log(e);
+    return errorResponse(500, { data: false, msg: "Server Error" }, res);
+  }
+};
+
+export const getReply = async (req, res) => {
+  const user_id = req.user.id;
+  console.log(user_id);
+  const limit = parseInt(req.query.limit) || 5;
+  const perPage = parseInt(req.query.page) || 1;
+  const offset = Number((perPage - 1) * limit);
+  let q = `SELECT PAYSAR.id AS paysar_id, title, content, sent_date, replay,reply_date,username,image_url FROM PAYSAR 
+         LEFT JOIN User ON PAYSAR.user_id = User.id  
+         WHERE PAYSAR.sender_id=? AND reply_date IS NOT NULL
+         ORDER BY reply_date DESC
+         LIMIT ${limit} OFFSET ${offset}`;
+  try {
+    const [result] = await pool.execute(q, [user_id]);
+    if (result.length === 0) {
+      return errorResponse(402, { data: false, msg: "No Paysar found" }, res);
+    }
+    const countQuery = "SELECT COUNT(*) as Count FROM PAYSAR WHERE sender_id=?";
+    const [countResult] = await pool.execute(countQuery, [user_id]);
+    const totalPage = Math.ceil(+countResult[0]?.Count / limit);
+    return successResponse(
+      200,
+      { result, page: +perPage, limit: +limit, totalPage },
+      res
+    );
   } catch (e) {
     console.log(e);
     return errorResponse(500, { data: false, msg: "Server Error" }, res);
