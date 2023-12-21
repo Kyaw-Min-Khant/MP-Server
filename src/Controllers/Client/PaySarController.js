@@ -66,7 +66,7 @@ export const getPaysar = async (req, res) => {
   let q = `SELECT PAYSAR.id AS paysar_id, PAYSAR.title, PAYSAR.content, PAYSAR.sent_date, PAYSAR.replay,
   User.username, User.image_url
 FROM PAYSAR 
-LEFT JOIN User ON PAYSAR.user_id = User.id  
+LEFT JOIN User ON PAYSAR.sender_id= User.id  
 WHERE PAYSAR.user_id=?
 ORDER BY PAYSAR.sent_date DESC
 LIMIT ${limit} OFFSET ${offset}`;
@@ -94,7 +94,7 @@ export const getUserPaysar = async (req, res) => {
   const perPage = parseInt(req.query.page) || 1;
   const offset = Number((perPage - 1) * limit);
   let q = `SELECT PAYSAR.id AS paysar_id, title, content, sent_date, replay,username,image_url FROM PAYSAR 
-         LEFT JOIN User ON PAYSAR.sender_id = User.id  
+         LEFT JOIN User ON PAYSAR.user_id = User.id  
          WHERE PAYSAR.sender_id=? 
          ORDER BY sent_date DESC
          LIMIT ${limit} OFFSET ${offset}`;
