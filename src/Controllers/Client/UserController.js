@@ -62,15 +62,15 @@ export const register = async (req, res) => {
     let device_id = checkdevice(req.headers["user-agent"]);
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
-    // const query =
-    //   "INSERT INTO `User` (`username`,`email`,`password`,`device_id`,`image_url`) VALUES (?,?,?,?,?)";
-    // const [result] = await pool.execute(query, [
-    //   username,
-    //   email,
-    //   hashedPassword,
-    //   device_id,
-    //   ImageData[imageNumber],
-    // ]);
+    const query =
+      "INSERT INTO `User` (`username`,`email`,`password`,`device_id`,`image_url`) VALUES (?,?,?,?,?)";
+    const [result] = await pool.execute(query, [
+      username,
+      email,
+      hashedPassword,
+      device_id,
+      ImageData[imageNumber],
+    ]);
     const jwtToken = Jwt.sign({ id: 3, email }, secret.JWTTOKEN, {
       expiresIn: "30d",
     });

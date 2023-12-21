@@ -63,14 +63,15 @@ export const getPaysar = async (req, res) => {
   const offset = Number((perPage - 1) * limit);
   const user_id = req?.user?.id;
 
-  let q = `SELECT id AS paysar_id, title, content, sent_date, replay
-          FROM PAYSAR
-          WHERE user_id=${user_id}
-          ORDER BY sent_date DESC
-          LIMIT ${limit} OFFSET ${offset}`;
-
+  let q = `SELECT PAYSAR.id AS paysar_id, PAYSAR.title, PAYSAR.content, PAYSAR.sent_date, PAYSAR.replay,
+  User.username, User.image_url
+FROM PAYSAR 
+LEFT JOIN User ON PAYSAR.user_id = User.id  
+WHERE PAYSAR.user_id=?
+ORDER BY PAYSAR.sent_date DESC
+LIMIT ${limit} OFFSET ${offset}`;
   try {
-    const [result] = await pool.execute(q);
+    const [result] = await pool.execute(q, [user_id]);
     if (result.length === 0) {
       return errorResponse(402, { data: false, msg: "No Paysar found" }, res);
     }
@@ -83,6 +84,7 @@ export const getPaysar = async (req, res) => {
       res
     );
   } catch (e) {
+    console.log(e);
     return errorResponse(500, { data: false, msg: e.message }, res);
   }
 };
@@ -91,8 +93,11 @@ export const getUserPaysar = async (req, res) => {
   const limit = parseInt(req.query.limit) || 7;
   const perPage = parseInt(req.query.page) || 1;
   const offset = Number((perPage - 1) * limit);
-  let q = `SELECT id AS paysar_id,title,content,sent_date,replay FROM PAYSAR WHERE sender_id=?  ORDER BY sent_date DESC
-          LIMIT ${limit} OFFSET ${offset}`;
+  let q = `SELECT PAYSAR.id AS paysar_id, title, content, sent_date, replay,username,image_url FROM PAYSAR 
+         LEFT JOIN User ON PAYSAR.sender_id = User.id  
+         WHERE PAYSAR.sender_id=? 
+         ORDER BY sent_date DESC
+         LIMIT ${limit} OFFSET ${offset}`;
   const user_id = req.user.id;
   try {
     const [result] = await pool.execute(q, [user_id]);
