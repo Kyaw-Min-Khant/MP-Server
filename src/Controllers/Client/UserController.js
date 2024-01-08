@@ -3,12 +3,11 @@ import pool from "../../config/dbconfig.js";
 import { errorResponse, successResponse } from "../../utils/req&res.js";
 import Jwt from "jsonwebtoken";
 import { secret } from "../../config/secret.js";
-import QRCode from "qrcode";
-import admin from "firebase-admin";
 import { checkdevice, generateRandomNumber } from "../../utils/random.js";
+import { ImageData } from "../../image/image.js";
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
-
+  console.log(req.body);
   try {
     if (!username || !email || !password) {
       return errorResponse(
@@ -34,7 +33,7 @@ export const register = async (req, res) => {
     const validatePassword = (password) => {
       return passwordRegex.test(password);
     };
-    const bucket = admin.storage().bucket();
+    // const bucket = admin.storage().bucket();
 
     //Check Username
     if (!usernameRegex.test(username))
@@ -43,19 +42,19 @@ export const register = async (req, res) => {
     if (!validatePassword(password)) {
       return errorResponse(401, { data: false, msg: "Invalid Password" }, res);
     }
-    const generateQR = async (text) => {
-      try {
-        const imageData = await QRCode.toFile(
-          "file.png",
-          `https://pay-sar.vercel.app/user/${text}/ask-question`,
-          { errorCorrectionLevel: "H" }
-        );
-        console.log(imageData);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    generateQR(username);
+    // const generateQR = async (text) => {
+    //   try {
+    //     const imageData = await QRCode.toFile(
+    //       "file.png",
+    //       `https://pay-sar.vercel.app/user/${text}/ask-question`,
+    //       { errorCorrectionLevel: "H" }
+    //     );
+    //     console.log(imageData);
+    //   } catch (err) {
+    //     console.error(err);
+    //   }
+    // };
+    // generateQR(username);
     // Generate Image Number
     let imageNumber = Number(generateRandomNumber());
     //Get device Name
