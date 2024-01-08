@@ -3,7 +3,7 @@ import { errorResponse, successResponse } from "../../utils/req&res.js";
 import { checkdevice } from "../../utils/random.js";
 export const createBlog = async (req, res) => {
   const { title, content, username, sender_id } = req.body;
-
+  console.log(req.body);
   try {
     if (!title || !content || !username) {
       return errorResponse(
