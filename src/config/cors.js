@@ -2,7 +2,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://easy2-successdashboard.vercel.app",
+  "https://pay-sar-rose.vercel.app/",
 ];
 
 const corsOptions = {
