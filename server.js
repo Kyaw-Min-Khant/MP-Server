@@ -9,13 +9,14 @@ import payserRouter from "./src/Routes/Client/blogRoute.js";
 import userRouter from "./src/Routes/Client/userRoute.js";
 import imageRouter from "./src/Routes/Client/imageRoute.js";
 import feedbackRouter from "./src/Routes/Client/feedbackRoute.js";
+import corsOptions from "./src/config/cors.js";
 
 config();
 const app = express();
 app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(
   express.urlencoded({ limit: "60mb", extended: true, parameterLimit: 1000000 })
 );
